@@ -2,6 +2,7 @@ package thyme
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"strconv"
@@ -16,12 +17,15 @@ const maxNumberOfBars = 30
 // 1. A timeline of applications active, visible, and open
 // 2. A timeline of windows active, visible, and open
 // 3. A barchart of applications most often active, visible, and open
-func Stats(stream *Stream) error {
+func Stats(stream *Stream, w io.Writer) error {
 	tlFine := NewTimeline(stream, func(w *Window) string { return w.Name })
 	tlCoarse := NewTimeline(stream, appID)
 	agg := NewAggTime(stream, appID)
 
-	if err := statsTmpl.Execute(os.Stdout, &statsPage{
+	if w == nil {
+		w = os.Stdout
+	}
+	if err := statsTmpl.Execute(w, &statsPage{
 		Fine:   tlFine,
 		Coarse: tlCoarse,
 		Agg:    agg,
